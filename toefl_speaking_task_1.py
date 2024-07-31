@@ -12,8 +12,8 @@ class QuestionApp:
         self.questions = questions
         self.answered_questions = self.load_answered_questions()
         self.current_question = 0
-        self.read_time = 2  # Time to read the question
-        self.answer_time = 5  # Time to answer the question
+        self.read_time = 20  # Time to read the question
+        self.answer_time = 45  # Time to answer the question
         self.timer_running = False
 
         # Create the answers folder if it does not exist
@@ -38,14 +38,20 @@ class QuestionApp:
         self.timer_label.pack(pady=10)
         
         self.skip_button = tk.Button(self.qa_frame, text="Skip", command=self.skip_question)
-        self.skip_button.pack(pady=20)
-        self.skip_button.pack_forget()  # Hide initially
+        self.skip_button.pack(pady=10)
+        
+        self.back_button_qa = tk.Button(self.qa_frame, text="Back to Main Menu", command=self.back_to_main_menu)
+        self.back_button_qa.pack(pady=10)
+        self.skip_button.pack()  # Show initially
         
         # Review answers screen
         self.review_frame = tk.Frame(master)
         self.review_text_area = scrolledtext.ScrolledText(self.review_frame, wrap=tk.WORD, font=("Arial", 14), height=10, width=50)
         self.review_text_area.pack(pady=20)
         self.review_text_area.config(state=tk.DISABLED)
+        
+        self.back_button_review = tk.Button(self.review_frame, text="Back to Main Menu", command=self.back_to_main_menu)
+        self.back_button_review.pack(pady=10)
         
     def load_answered_questions(self):
         if os.path.exists('answered_questions.txt'):
@@ -73,6 +79,11 @@ class QuestionApp:
         for index in self.answered_questions:
             self.review_text_area.insert(tk.END, f"Question {index + 1}: {self.questions[index]}\n")
         self.review_text_area.config(state=tk.DISABLED)
+
+    def back_to_main_menu(self):
+        self.qa_frame.pack_forget()
+        self.review_frame.pack_forget()
+        self.intro_frame.pack(pady=20)
 
     def ask_question(self):
         unanswered_questions = [i for i in range(len(self.questions)) if i not in self.answered_questions]
