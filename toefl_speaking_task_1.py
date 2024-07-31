@@ -10,37 +10,75 @@ class QuestionApp:
     def __init__(self, master, questions):
         self.master = master
         self.questions = questions
+        self.answered_questions = self.load_answered_questions()
         self.current_question = 0
-        self.read_time = 20  # Time to read the question
+        self.read_time = 2  # Time to read the question
         self.answer_time = 5  # Time to answer the question
         self.timer_running = False
-        
+
         # Create the answers folder if it does not exist
         if not os.path.exists('answers'):
             os.makedirs('answers')
         
-        self.text_area = scrolledtext.ScrolledText(master, wrap=tk.WORD, font=("Arial", 14), height=10, width=50)
+        # Initial screen
+        self.intro_frame = tk.Frame(master)
+        self.intro_frame.pack(pady=20)
+        self.answer_new_button = tk.Button(self.intro_frame, text="Answer New Questions", command=self.answer_new_questions)
+        self.answer_new_button.pack(pady=10)
+        self.review_answers_button = tk.Button(self.intro_frame, text="Review Answered Questions", command=self.review_answered_questions)
+        self.review_answers_button.pack(pady=10)
+        
+        # Question and answer screen
+        self.qa_frame = tk.Frame(master)
+        self.text_area = scrolledtext.ScrolledText(self.qa_frame, wrap=tk.WORD, font=("Arial", 14), height=10, width=50)
         self.text_area.pack(pady=20)
         self.text_area.config(state=tk.DISABLED)  # Initially disable editing
         
-        self.timer_label = tk.Label(master, text="", font=("Arial", 14))
+        self.timer_label = tk.Label(self.qa_frame, text="", font=("Arial", 14))
         self.timer_label.pack(pady=10)
         
-        self.start_button = tk.Button(master, text="Start", command=self.start)
-        self.start_button.pack(pady=20)
-        
-        self.skip_button = tk.Button(master, text="Skip", command=self.skip_question)
+        self.skip_button = tk.Button(self.qa_frame, text="Skip", command=self.skip_question)
         self.skip_button.pack(pady=20)
         self.skip_button.pack_forget()  # Hide initially
+        
+        # Review answers screen
+        self.review_frame = tk.Frame(master)
+        self.review_text_area = scrolledtext.ScrolledText(self.review_frame, wrap=tk.WORD, font=("Arial", 14), height=10, width=50)
+        self.review_text_area.pack(pady=20)
+        self.review_text_area.config(state=tk.DISABLED)
+        
+    def load_answered_questions(self):
+        if os.path.exists('answered_questions.txt'):
+            with open('answered_questions.txt', 'r') as file:
+                answered = file.read().splitlines()
+            return list(map(int, answered))
+        return []
+    
+    def save_answered_question(self, question_index):
+        self.answered_questions.append(question_index)
+        with open('answered_questions.txt', 'a') as file:
+            file.write(f"{question_index}\n")
 
-    def start(self):
-        self.start_button.pack_forget()
-        self.skip_button.pack()  # Show skip button
+    def answer_new_questions(self):
+        self.intro_frame.pack_forget()
+        self.qa_frame.pack(pady=20)
         self.ask_question()
         
+    def review_answered_questions(self):
+        self.intro_frame.pack_forget()
+        self.review_frame.pack(pady=20)
+        
+        self.review_text_area.config(state=tk.NORMAL)
+        self.review_text_area.delete(1.0, tk.END)
+        for index in self.answered_questions:
+            self.review_text_area.insert(tk.END, f"Question {index + 1}: {self.questions[index]}\n")
+        self.review_text_area.config(state=tk.DISABLED)
+
     def ask_question(self):
-        if self.current_question < len(self.questions):
-            question = self.questions[self.current_question]
+        unanswered_questions = [i for i in range(len(self.questions)) if i not in self.answered_questions]
+        if self.current_question < len(unanswered_questions):
+            question_index = unanswered_questions[self.current_question]
+            question = self.questions[question_index]
             self.text_area.config(state=tk.NORMAL)  # Enable editing to update text
             self.text_area.delete(1.0, tk.END)  # Clear previous text
             self.text_area.insert(tk.END, question)
@@ -83,8 +121,11 @@ class QuestionApp:
         sd.wait()  # Wait until recording is finished
         
         # Save as WAV file in the answers folder
-        answer_path = f"answers/answer_{self.current_question + 1}.wav"
+        question_index = [i for i in range(len(self.questions)) if i not in self.answered_questions][self.current_question]
+        answer_path = f"answers/answer_{question_index + 1}.wav"
         write(answer_path, 44100, self.myrecording)
+        
+        self.save_answered_question(question_index)
         
         self.current_question += 1
         self.ask_question()
