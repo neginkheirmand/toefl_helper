@@ -11,9 +11,10 @@ class QuestionApp:
         self.master.geometry("800x600")  # Set the initial window size
         self.questions = questions
         self.answered_questions = self.load_answered_questions()
+        self.reviewed_questions = self.load_reviewed_questions()
         self.current_question = 0
-        self.read_time = 20  # Time to read the question
-        self.answer_time = 45  # Time to answer the question
+        self.read_time =2  # Time to read the question
+        self.answer_time = 5  # Time to answer the question
         self.timer_running = False
 
         # Create the answers folder if it does not exist
@@ -62,6 +63,9 @@ class QuestionApp:
         self.play_button = tk.Button(self.review_frame, text="Play Answer", command=self.play_answer)
         self.play_button.pack(pady=10)
         
+        self.done_reviewing_button = tk.Button(self.review_frame, text="Done Reviewing", command=self.mark_as_reviewed)
+        self.done_reviewing_button.pack(pady=10)
+        
         self.back_button_review = tk.Button(self.review_frame, text="Back to Main Menu", command=self.back_to_main_menu)
         self.back_button_review.pack(pady=10)
 
@@ -72,10 +76,23 @@ class QuestionApp:
             return list(map(int, answered))
         return []
     
+    def load_reviewed_questions(self):
+        if os.path.exists('reviewed_questions.txt'):
+            with open('reviewed_questions.txt', 'r') as file:
+                reviewed = file.read().splitlines()
+            return list(map(int, reviewed))
+        return []
+    
     def save_answered_question(self, question_index):
         self.answered_questions.append(question_index)
         with open('answered_questions.txt', 'a') as file:
             file.write(f"{question_index}\n")
+
+    def save_reviewed_question(self, question_index):
+        if question_index not in self.reviewed_questions:
+            self.reviewed_questions.append(question_index)
+            with open('reviewed_questions.txt', 'a') as file:
+                file.write(f"{question_index}\n")
 
     def answer_new_questions(self):
         self.intro_frame.pack_forget()
@@ -88,7 +105,8 @@ class QuestionApp:
         
         self.review_listbox.delete(0, tk.END)
         for index in self.answered_questions:
-            self.review_listbox.insert(tk.END, f"Question {index + 1}")
+            review_status = " (already reviewed)" if index in self.reviewed_questions else ""
+            self.review_listbox.insert(tk.END, f"Question {index + 1}{review_status}")
 
     def back_to_main_menu(self):
         self.qa_frame.pack_forget()
@@ -172,6 +190,9 @@ class QuestionApp:
             self.review_text_area.delete(1.0, tk.END)
             self.review_text_area.insert(tk.END, question)
             self.review_text_area.config(state=tk.DISABLED)
+            
+            # Store the selected question index for marking as reviewed
+            self.current_reviewing_question = question_index
 
     def play_answer(self):
         selection = self.review_listbox.curselection()
@@ -185,6 +206,18 @@ class QuestionApp:
                 sd.wait()  # Wait until the sound has finished playing
             else:
                 messagebox.showerror("Error", "Audio file not found")
+
+    def mark_as_reviewed(self):
+        if hasattr(self, 'current_reviewing_question'):
+            question_index = self.current_reviewing_question
+            self.save_reviewed_question(question_index)
+            self.update_review_listbox()
+
+    def update_review_listbox(self):
+        self.review_listbox.delete(0, tk.END)
+        for index in self.answered_questions:
+            review_status = " (already reviewed)" if index in self.reviewed_questions else ""
+            self.review_listbox.insert(tk.END, f"Question {index + 1}{review_status}")
 
 def load_questions(filename):
     with open(filename, 'r') as file:
