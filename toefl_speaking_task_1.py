@@ -13,7 +13,7 @@ class QuestionApp:
         self.answered_questions = self.load_answered_questions()
         self.reviewed_questions = self.load_reviewed_questions()
         self.current_question = 0
-        self.read_time =2  # Time to read the question
+        self.read_time = 2  # Time to read the question
         self.answer_time = 5  # Time to answer the question
         self.timer_running = False
 
@@ -40,7 +40,7 @@ class QuestionApp:
         
         self.loader_canvas = tk.Canvas(self.qa_frame, width=50, height=50)
         self.loader_canvas.pack(pady=10)
-        self.loader_arc = self.loader_canvas.create_arc((5, 5, 45, 45), start=0, extent=0, fill="blue")
+        self.loader_arc = self.loader_canvas.create_arc(( 5, 5, 45, 45), start=0, extent=0, fill="blue")
 
         self.skip_button = tk.Button(self.qa_frame, text="Skip", command=self.skip_question)
         self.skip_button.pack(pady=10)
@@ -82,7 +82,7 @@ class QuestionApp:
                 reviewed = file.read().splitlines()
             return list(map(int, reviewed))
         return []
-    
+
     def save_answered_question(self, question_index):
         self.answered_questions.append(question_index)
         with open('answered_questions.txt', 'a') as file:
@@ -98,15 +98,11 @@ class QuestionApp:
         self.intro_frame.pack_forget()
         self.qa_frame.pack(pady=20)
         self.ask_question()
-        
+
     def review_answered_questions(self):
         self.intro_frame.pack_forget()
         self.review_frame.pack(pady=20)
-        
-        self.review_listbox.delete(0, tk.END)
-        for index in self.answered_questions:
-            review_status = " (already reviewed)" if index in self.reviewed_questions else ""
-            self.review_listbox.insert(tk.END, f"Question {index + 1}{review_status}")
+        self.update_review_listbox()
 
     def back_to_main_menu(self):
         self.qa_frame.pack_forget()
@@ -115,7 +111,9 @@ class QuestionApp:
 
     def ask_question(self):
         unanswered_questions = [i for i in range(len(self.questions)) if i not in self.answered_questions]
-        if self.current_question < len(unanswered_questions):
+        if unanswered_questions:
+            if self.current_question >= len(unanswered_questions):
+                self.current_question = 0  # Reset to the start if end of list
             question_index = unanswered_questions[self.current_question]
             question = self.questions[question_index]
             self.text_area.config(state=tk.NORMAL)  # Enable editing to update text
@@ -212,6 +210,9 @@ class QuestionApp:
             question_index = self.current_reviewing_question
             self.save_reviewed_question(question_index)
             self.update_review_listbox()
+            self.review_text_area.config(state=tk.NORMAL)
+            self.review_text_area.delete(1.0, tk.END)
+            self.review_text_area.config(state=tk.DISABLED)
 
     def update_review_listbox(self):
         self.review_listbox.delete(0, tk.END)
