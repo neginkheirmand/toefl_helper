@@ -1,10 +1,9 @@
 import os
 import tkinter as tk
-from tkinter import messagebox, scrolledtext
+from tkinter import messagebox, scrolledtext, Listbox, SINGLE
 import sounddevice as sd
-from scipy.io.wavfile import write
-import threading
-import time
+from scipy.io.wavfile import write, read
+import numpy as np
 
 class QuestionApp:
     def __init__(self, master, questions):
@@ -51,13 +50,21 @@ class QuestionApp:
         
         # Review answers screen
         self.review_frame = tk.Frame(master)
-        self.review_text_area = scrolledtext.ScrolledText(self.review_frame, wrap=tk.WORD, font=("Arial", 14), height=10, width=50)
-        self.review_text_area.pack(pady=20)
+        
+        self.review_listbox = Listbox(self.review_frame, selectmode=SINGLE, font=("Arial", 14), width=50, height=10)
+        self.review_listbox.pack(pady=20)
+        self.review_listbox.bind("<<ListboxSelect>>", self.display_answer)
+        
+        self.review_text_area = scrolledtext.ScrolledText(self.review_frame, wrap=tk.WORD, font=("Arial", 14), height=5, width=50)
+        self.review_text_area.pack(pady=10)
         self.review_text_area.config(state=tk.DISABLED)
+        
+        self.play_button = tk.Button(self.review_frame, text="Play Answer", command=self.play_answer)
+        self.play_button.pack(pady=10)
         
         self.back_button_review = tk.Button(self.review_frame, text="Back to Main Menu", command=self.back_to_main_menu)
         self.back_button_review.pack(pady=10)
-        
+
     def load_answered_questions(self):
         if os.path.exists('answered_questions.txt'):
             with open('answered_questions.txt', 'r') as file:
@@ -79,11 +86,9 @@ class QuestionApp:
         self.intro_frame.pack_forget()
         self.review_frame.pack(pady=20)
         
-        self.review_text_area.config(state=tk.NORMAL)
-        self.review_text_area.delete(1.0, tk.END)
+        self.review_listbox.delete(0, tk.END)
         for index in self.answered_questions:
-            self.review_text_area.insert(tk.END, f"Question {index + 1}: {self.questions[index]}\n")
-        self.review_text_area.config(state=tk.DISABLED)
+            self.review_listbox.insert(tk.END, f"Question {index + 1}")
 
     def back_to_main_menu(self):
         self.qa_frame.pack_forget()
@@ -155,6 +160,31 @@ class QuestionApp:
             self.timer_running = False
         self.current_question += 1
         self.ask_question()
+
+    def display_answer(self, event):
+        selection = event.widget.curselection()
+        if selection:
+            index = selection[0]
+            question_index = self.answered_questions[index]
+            question = self.questions[question_index]
+            
+            self.review_text_area.config(state=tk.NORMAL)
+            self.review_text_area.delete(1.0, tk.END)
+            self.review_text_area.insert(tk.END, question)
+            self.review_text_area.config(state=tk.DISABLED)
+
+    def play_answer(self):
+        selection = self.review_listbox.curselection()
+        if selection:
+            index = selection[0]
+            question_index = self.answered_questions[index]
+            answer_path = f"answers/answer_{question_index + 1}.wav"
+            if os.path.exists(answer_path):
+                fs, data = read(answer_path)
+                sd.play(data, fs)
+                sd.wait()  # Wait until the sound has finished playing
+            else:
+                messagebox.showerror("Error", "Audio file not found")
 
 def load_questions(filename):
     with open(filename, 'r') as file:
