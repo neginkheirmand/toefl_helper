@@ -9,6 +9,7 @@ import time
 class QuestionApp:
     def __init__(self, master, questions):
         self.master = master
+        self.master.geometry("800x600")  # Set the initial window size
         self.questions = questions
         self.answered_questions = self.load_answered_questions()
         self.current_question = 0
@@ -37,6 +38,10 @@ class QuestionApp:
         self.timer_label = tk.Label(self.qa_frame, text="", font=("Arial", 14))
         self.timer_label.pack(pady=10)
         
+        self.loader_canvas = tk.Canvas(self.qa_frame, width=50, height=50)
+        self.loader_canvas.pack(pady=10)
+        self.loader_arc = self.loader_canvas.create_arc((5, 5, 45, 45), start=0, extent=0, fill="blue")
+
         self.skip_button = tk.Button(self.qa_frame, text="Skip", command=self.skip_question)
         self.skip_button.pack(pady=10)
         
@@ -95,7 +100,7 @@ class QuestionApp:
             self.text_area.insert(tk.END, question)
             self.text_area.config(state=tk.DISABLED)  # Disable editing again
             
-            self.update_timer(self.read_time, self.record_answer)
+            self.update_timer(self.read_time, self.record_answer, self.read_time)
         else:
             self.text_area.config(state=tk.NORMAL)
             self.text_area.delete(1.0, tk.END)
@@ -104,13 +109,16 @@ class QuestionApp:
             self.timer_label.config(text="")
             self.skip_button.pack_forget()  # Hide skip button
 
-    def update_timer(self, remaining_time, callback):
+    def update_timer(self, remaining_time, callback, total_time):
         self.timer_running = True
         if remaining_time > 0:
             self.timer_label.config(text=f"Time left: {remaining_time} seconds")
+            extent = ((total_time - remaining_time) / total_time) * 360
+            self.loader_canvas.itemconfig(self.loader_arc, extent=extent)
             remaining_time -= 1
-            self.timer_id = self.master.after(1000, self.update_timer, remaining_time, callback)
+            self.timer_id = self.master.after(1000, self.update_timer, remaining_time, callback, total_time)
         else:
+            self.loader_canvas.itemconfig(self.loader_arc, extent=360)
             self.timer_running = False
             callback()
             
@@ -120,7 +128,7 @@ class QuestionApp:
         self.text_area.insert(tk.END, "Recording...")
         self.text_area.config(state=tk.DISABLED)
         
-        self.update_timer(self.answer_time, self.save_recording)
+        self.update_timer(self.answer_time, self.save_recording, self.answer_time)
         
         fs = 44100  # Sample rate
         seconds = self.answer_time  # Duration of recording
