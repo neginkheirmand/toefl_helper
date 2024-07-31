@@ -1,3 +1,4 @@
+import os
 import tkinter as tk
 from tkinter import messagebox, scrolledtext
 import sounddevice as sd
@@ -11,8 +12,12 @@ class QuestionApp:
         self.questions = questions
         self.current_question = 0
         self.read_time = 20  # Time to read the question
-        self.answer_time = 45  # Time to answer the question
+        self.answer_time = 5  # Time to answer the question
         self.timer_running = False
+        
+        # Create the answers folder if it does not exist
+        if not os.path.exists('answers'):
+            os.makedirs('answers')
         
         self.text_area = scrolledtext.ScrolledText(master, wrap=tk.WORD, font=("Arial", 14), height=10, width=50)
         self.text_area.pack(pady=20)
@@ -77,8 +82,9 @@ class QuestionApp:
     def save_recording(self):
         sd.wait()  # Wait until recording is finished
         
-        # Save as WAV file
-        write(f"answer_{self.current_question + 1}.wav", 44100, self.myrecording)
+        # Save as WAV file in the answers folder
+        answer_path = f"answers/answer_{self.current_question + 1}.wav"
+        write(answer_path, 44100, self.myrecording)
         
         self.current_question += 1
         self.ask_question()
