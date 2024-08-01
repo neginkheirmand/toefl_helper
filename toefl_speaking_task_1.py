@@ -1,6 +1,7 @@
 import os
 import tkinter as tk
 from tkinter import messagebox, scrolledtext, Listbox, SINGLE
+from tkinter import ttk
 import sounddevice as sd
 from scipy.io.wavfile import write, read
 import numpy as np
@@ -28,7 +29,12 @@ class QuestionApp:
         self.answer_new_button.pack(pady=10)
         self.review_answers_button = tk.Button(self.intro_frame, text="Review Answered Questions", command=self.review_answered_questions)
         self.review_answers_button.pack(pady=10)
-        
+
+        # Progress bar
+        self.progress = ttk.Progressbar(self.intro_frame, orient="horizontal", length=400, mode="determinate")
+        self.progress.pack(pady=20)
+        self.update_progress()
+
         # Question and answer screen
         self.qa_frame = tk.Frame(master)
         self.text_area = scrolledtext.ScrolledText(self.qa_frame, wrap=tk.WORD, font=("Arial", 14), height=10, width=50)
@@ -40,7 +46,7 @@ class QuestionApp:
         
         self.loader_canvas = tk.Canvas(self.qa_frame, width=50, height=50)
         self.loader_canvas.pack(pady=10)
-        self.loader_arc = self.loader_canvas.create_arc(( 5, 5, 45, 45), start=0, extent=0, fill="blue")
+        self.loader_arc = self.loader_canvas.create_arc((5, 5, 45, 45), start=0, extent=0, fill="blue")
 
         self.skip_button = tk.Button(self.qa_frame, text="Skip", command=self.skip_question)
         self.skip_button.pack(pady=10)
@@ -87,6 +93,7 @@ class QuestionApp:
         self.answered_questions.append(question_index)
         with open('answered_questions.txt', 'a') as file:
             file.write(f"{question_index}\n")
+        self.update_progress()
 
     def save_reviewed_question(self, question_index):
         if question_index not in self.reviewed_questions:
@@ -94,6 +101,12 @@ class QuestionApp:
             with open('reviewed_questions.txt', 'a') as file:
                 file.write(f"{question_index}\n")
 
+    def update_progress(self):
+        total_questions = len(self.questions)
+        answered_questions = len(self.answered_questions)
+        self.progress['value'] = (answered_questions / total_questions) * 100
+        self.master.update_idletasks()
+    
     def answer_new_questions(self):
         self.intro_frame.pack_forget()
         self.qa_frame.pack(pady=20)
@@ -102,12 +115,14 @@ class QuestionApp:
     def review_answered_questions(self):
         self.intro_frame.pack_forget()
         self.review_frame.pack(pady=20)
+        
         self.update_review_listbox()
 
     def back_to_main_menu(self):
         self.qa_frame.pack_forget()
         self.review_frame.pack_forget()
         self.intro_frame.pack(pady=20)
+        self.update_progress()
 
     def ask_question(self):
         unanswered_questions = [i for i in range(len(self.questions)) if i not in self.answered_questions]
@@ -221,7 +236,7 @@ class QuestionApp:
             self.review_listbox.insert(tk.END, f"Question {index + 1}{review_status}")
 
 def load_questions(filename):
-    with open(filename, 'r') as file:
+    with open(filename, 'r', encoding='utf-8') as file:
         questions = file.readlines()
     questions = [q.strip() for q in questions]
     return questions
