@@ -1,0 +1,17 @@
+passage:
+Directions :Your professor is teaching on sociology. Write a post responding to the professor's question. In your response, you should do the following. ●Express and support your opinion. ●Make a contribution to the discussion in your own words. An effective response will contain at least 100 words.
+
+Question :Dr. Diaz:
+In recent years, there has been a significant integration of advanced machines and artificial intelligence (Al) into our daily lives and work environments. l would like you to reflect on the following question: Should we extend the same level of politeness and respect to Al and machines as we do to humans? Please provide your reasoning and discuss the potential consequences of adopting such an approach.
+
+Adam:
+Al and robots play an integral role in our lives, assisting us in various tasks and making our lives easier. By treating them with respect, we not only acknowledge their contributions but also reflect positively on our own character. lt's a small gesture that upholds our humanity and sets a standard for ethical interaction with technology.
+
+Claire:
+I think we don't need to treat Al and robots with the same politeness as we do humans. They are tools designed to assist us, and it's important to maintain that distinction. We should set clear guidelines and boundaries for their use to ensure they serve us effectively without overstepping their roles.
+
+my writing:
+In my personal opinion, the artifitially intelligent machines are not the same as humans and thus shouldn't be treated as an equal. The worries and complications that come from mistreating a human do not apply to these machines. For example, feelings of unbelonging or impostor syndrome are only results of human emotions. These are derivatives of human character and psychologcal themes that only apply to humans. As these machines don't have such attributes there is no need to worry. Plus machines are important because of their use and since the way they are treated doesnt affect their performance and thus shouldn't really be taken into account. 
+Plus, if we take into consideration how AI is created we would easily come to the conclusion that ethicallity is not something to worry about when dealing with a machine. Artificial Intelligence is a field of computer science that comes from machine learing. The humans feed data to a neural network and the network starts learning from the data it consumes. This data comes from every digital footprint the humans have on the net on a daily basis. In this scenario, by treating them as equals, we would be teaching them we are equals which is incorrect. This is a new field of science and we are yet to see the long term results that it could have on our life, so in my opinion, the boundries need to be uphold from the start, that way there wont be any means of change in the future.
+Furthermore, by treating them as tools we are teaching the newer generation how to use them and how to properly integrate them in their lives. By treating them as something that they are not, we are giving a wrong idea to our kids. 
+Finally, I would also like to mention that at the end of the day, they were only created as  means of helping humans. Never did we introduce our behavior towards them in this equation of user and tool, so it shoudn't become a concern now.

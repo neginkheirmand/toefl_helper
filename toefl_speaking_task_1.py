@@ -14,8 +14,8 @@ class QuestionApp:
         self.answered_questions = self.load_answered_questions()
         self.reviewed_questions = self.load_reviewed_questions()
         self.current_question = 0
-        self.read_time = 2  # Time to read the question
-        self.answer_time = 5  # Time to answer the question
+        self.read_time = 20  # Time to read the question
+        self.answer_time = 45  # Time to answer the question
         self.timer_running = False
 
         # Create the answers folder if it does not exist
