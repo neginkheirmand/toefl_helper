@@ -57,7 +57,11 @@ class QuestionApp:
         
         # Review answers screen
         self.review_frame = tk.Frame(master)
-        
+
+        # Progress bar for reviewed answers
+        self.review_progress = ttk.Progressbar(self.review_frame, orient="horizontal", length=400, mode="determinate")
+        self.review_progress.pack(pady=20)
+
         self.review_listbox = Listbox(self.review_frame, selectmode=SINGLE, font=("Arial", 14), width=50, height=10)
         self.review_listbox.pack(pady=20)
         self.review_listbox.bind("<<ListboxSelect>>", self.display_answer)
@@ -117,12 +121,20 @@ class QuestionApp:
         self.review_frame.pack(pady=20)
         
         self.update_review_listbox()
+        self.update_review_progress()  # Ensure the progress bar is updated when the review frame is shown
+
 
     def back_to_main_menu(self):
         self.qa_frame.pack_forget()
         self.review_frame.pack_forget()
         self.intro_frame.pack(pady=20)
         self.update_progress()
+        
+        # Stop any ongoing recording and cancel timers
+        if self.timer_running:
+            self.master.after_cancel(self.timer_id)
+            self.timer_running = False
+        sd.stop()
 
     def ask_question(self):
         unanswered_questions = [i for i in range(len(self.questions)) if i not in self.answered_questions]
@@ -131,6 +143,12 @@ class QuestionApp:
                 self.current_question = 0  # Reset to the start if end of list
             question_index = unanswered_questions[self.current_question]
             question = self.questions[question_index]
+            
+            # Calculate dynamic read time based on word count
+            word_count = len(question.split())  # Count words in the question
+            self.read_time = word_count * 0.25  # 0.25 seconds per word
+            self.read_time = self.read_time + 15
+
             self.text_area.config(state=tk.NORMAL)  # Enable editing to update text
             self.text_area.delete(1.0, tk.END)  # Clear previous text
             self.text_area.insert(tk.END, question)
@@ -144,6 +162,7 @@ class QuestionApp:
             self.text_area.config(state=tk.DISABLED)
             self.timer_label.config(text="")
             self.skip_button.pack_forget()  # Hide skip button
+
 
     def update_timer(self, remaining_time, callback, total_time):
         self.timer_running = True
@@ -213,12 +232,32 @@ class QuestionApp:
             index = selection[0]
             question_index = self.answered_questions[index]
             answer_path = f"answers/answer_{question_index + 1}.wav"
+            print(f"Attempting to play: {answer_path}")  # Debugging statement
             if os.path.exists(answer_path):
-                fs, data = read(answer_path)
-                sd.play(data, fs)
-                sd.wait()  # Wait until the sound has finished playing
+                try:
+                    fs, data = read(answer_path)
+                    print(f"File read successfully: {answer_path}")  # Debugging statement
+                    sd.play(data, fs)
+                    sd.wait()  # Wait until the sound has finished playing
+                    print("Playback finished")  # Debugging statement
+                except Exception as e:
+                    print(f"Error playing file: {e}")  # Debugging statement
+                    messagebox.showerror("Error", f"Error playing audio: {e}")
             else:
+                print(f"File not found: {answer_path}")  # Debugging statement
                 messagebox.showerror("Error", "Audio file not found")
+    
+    def update_review_progress(self):
+        total_answered = len(self.answered_questions)
+        reviewed_count = len(self.reviewed_questions)
+        
+        if total_answered > 0:
+            progress = (reviewed_count / total_answered) * 100
+        else:
+            progress = 0
+        
+        self.review_progress['value'] = progress
+        self.master.update_idletasks()
 
     def mark_as_reviewed(self):
         if hasattr(self, 'current_reviewing_question'):
@@ -228,12 +267,14 @@ class QuestionApp:
             self.review_text_area.config(state=tk.NORMAL)
             self.review_text_area.delete(1.0, tk.END)
             self.review_text_area.config(state=tk.DISABLED)
+            self.update_review_progress()
 
     def update_review_listbox(self):
         self.review_listbox.delete(0, tk.END)
         for index in self.answered_questions:
             review_status = " (already reviewed)" if index in self.reviewed_questions else ""
             self.review_listbox.insert(tk.END, f"Question {index + 1}{review_status}")
+        self.update_review_progress()
 
 def load_questions(filename):
     with open(filename, 'r', encoding='utf-8') as file:
